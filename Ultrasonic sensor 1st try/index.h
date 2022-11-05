@@ -1,5 +1,6 @@
-<script>
-
+const char MAIN_page[] PROGMEM = R"=====(
+<!DOCTYPE html>
+<html>
   setInterval(function() {
   getData();
   }, 1000);
@@ -16,6 +17,5 @@
     GetDataRequest.open("GET", "readCount", true);
     GetDataRequest.send();  
   }
-
-</script>
-
+</html>
+)=====";

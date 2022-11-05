@@ -2,11 +2,13 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <WiFiAP.h>
+#include <WebServer.h>
+#include "index.h"
 
 const char *ssid = "ESP 32";
 const char *password = "yourPassword";
 
-WiFiServer server(80);
+WebServer server(80);
 
 const int trigPin = 2;
 const int echoPin = 15;
@@ -31,11 +33,16 @@ void setup() {
   Serial.println("Server started");
 
   Count = 0;
+
+  server.on("/", handleRoot);      //This is display page
+  server.on("/readADC", COUNT);  
 }
 
-void loop() {
-  
-  // Clears the trigPin
+void handleRoot() {
+ String s = MAIN_page; //Read HTML contents
+ server.send(200, "text/html", s); //Send web page
+}
+int COUNT(){
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
   // Sets the trigPin on HIGH state for 10 micro seconds
@@ -51,14 +58,42 @@ void loop() {
   Serial.println(distance);
   delay(200);
 
-
   if (distance < 10) {
     Count += 1;
   } else {  // distance <=10
     Count;
   }
   Serial.print("count: ");
-  Serial.println(Count);
+  Serial.println(Count);  
+  server.send(200, "text/plane",  Count);
+}
+
+void loop() {
+  
+  // // Clears the trigPin
+  // digitalWrite(trigPin, LOW);
+  // delayMicroseconds(2);
+  // // Sets the trigPin on HIGH state for 10 micro seconds
+  // digitalWrite(trigPin, HIGH);
+  // delayMicroseconds(10);
+  // digitalWrite(trigPin, LOW);
+  // // Reads the echoPin, returns the sound wave travel time in microseconds
+  // duration = pulseIn(echoPin, HIGH);
+  // // Calculating the distance
+  // distance = duration * 0.034 / 2;
+  // // Prints the distance on the Serial Monitor
+  // Serial.print("Distance: ");
+  // Serial.println(distance);
+  // delay(200);
+
+
+  // if (distance < 10) {
+  //   Count += 1;
+  // } else {  // distance <=10
+  //   Count;
+  // }
+  // Serial.print("count: ");
+  // Serial.println(Count);
 
   WiFiClient client = server.available();   // listen for incoming clients
 
