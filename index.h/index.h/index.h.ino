@@ -1,4 +1,6 @@
 #include <SimpleTimer.h>
+#include <WiFi.h>
+#include <WebServer.h>
 #include <ESPAsyncWebServer.h>
 #include <AsyncTCP.h>
 #include "index.h"
@@ -63,6 +65,7 @@ void getSensorReadings(){
   count = COUNT();
 }
 void setup() {
+  
   Serial.begin(115200);
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
   request->send_P(200, "text/html", index_html, processor);
@@ -88,4 +91,5 @@ void loop() {
   Serial.println("Count: %d", count);
   events.send("ping",NULL,millis());
   events.send(String(count).c_str(),"count",millis());
+  
 }
