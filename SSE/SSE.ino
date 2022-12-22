@@ -2,21 +2,26 @@
 #include <ESPAsyncWebServer.h>
 #include <AsyncTCP.h>
 #include <WiFi.h>
+#include <WiFiAP.h>
 
-const char *ssid = "ESP32";
-const char *password = "PASSWORD";
+const char *ssid = "NW_GA-Call_EXT";
+const char *password = "CGitonga@123";
 
 AsyncWebServer server(80);
 
 // Create an Event Source on /events
 AsyncEventSource events("/events");
 
-int count = 0;
+unsigned long lastTime = 0;  
+unsigned long timerDelay = 3000;
 
-int COUNT(){
+int count = 0;
+int Count = 0;
+
+int Distance(){
   long duration;
   int distance;
-  int Count = 0;
+
   const int trigPin = 2;
   const int echoPin = 15;
   pinMode(trigPin, OUTPUT);
@@ -36,13 +41,19 @@ int COUNT(){
   Serial.print("Distance: ");
   Serial.println(distance);
   delay(200);
+  return (distance);
+}
+int dist = Distance();
 
-  if (distance < 10) {
+int COUNT()
+{
+  if (dist < 10) {
     Count += 1;
   } else {  // distance >=10
     Count;
   }
   return (Count);
+  println("Scored: %d", Count); 
 }
 
 void getSensorReadings(){
@@ -63,10 +74,9 @@ void initWiFi() {
 String processor(const String& var){
   getSensorReadings();
   //Serial.println(var);
-  if(var == "COUNT"){
+  if(var == "count"){
     return String(count);
   }
-  return String();
 }
 
 const char index_html[] PROGMEM = R"rawliteral(
@@ -90,18 +100,12 @@ const char index_html[] PROGMEM = R"rawliteral(
 </head>
 <body>
   <div class="topnav">
-    <h1>BME280 WEB SERVER (SSE)</h1>
+    <h1>SMART RIM (SSE)</h1>
   </div>
   <div class="content">
     <div class="cards">
       <div class="card">
-        <p><i class="fas fa-thermometer-half" style="color:#059e8a;"></i> TEMPERATURE</p><p><span class="reading"><span id="temp">%TEMPERATURE%</span> &deg;C</span></p>
-      </div>
-      <div class="card">
-        <p><i class="fas fa-tint" style="color:#00add6;"></i> HUMIDITY</p><p><span class="reading"><span id="hum">%HUMIDITY%</span> &percnt;</span></p>
-      </div>
-      <div class="card">
-        <p><i class="fas fa-angle-double-down" style="color:#e1e437;"></i> PRESSURE</p><p><span class="reading"><span id="pres">%PRESSURE%</span> hPa</span></p>
+        <p>COUNT</p><p><span class="reading"><span id="count">%COUNT%</span> scored</span></p>
       </div>
     </div>
   </div>
@@ -136,6 +140,7 @@ if (!!window.EventSource)
 void setup() {
   Serial.begin(115200);
   initWiFi();
+  COUNT();
   
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
   request->send_P(200, "text/html", index_html, processor);
@@ -156,9 +161,13 @@ server.begin();
 
 
 void loop() {
+ if ((millis() - lastTime) > timerDelay){
   delay(200);
   getSensorReadings();
-  //Serial.println("Count: %d", count);
+//  Serial.println("Count: %d", count);
   events.send("ping",NULL,millis());
   events.send(String(count).c_str(),"count",millis());
+  
+  lastTime = millis();
+ }
 }
