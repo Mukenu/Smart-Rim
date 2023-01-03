@@ -2,10 +2,12 @@
 #include <ESPAsyncWebServer.h>
 #include <AsyncTCP.h>
 #include <WiFi.h>
+#include <WiFi.h>
+#include <WiFiClient.h>
 #include <WiFiAP.h>
 
-const char *ssid = "NW_GA-Call_EXT";
-const char *password = "CGitonga@123";
+const char *ssid = "ESP32";
+const char *password = "password";
 
 AsyncWebServer server(80);
 
@@ -53,7 +55,6 @@ int COUNT()
     Count;
   }
   return (Count);
-  println("Scored: %d", Count); 
 }
 
 void getSensorReadings(){
@@ -61,7 +62,7 @@ void getSensorReadings(){
 }
 
 void initWiFi() {
-  WiFi.mode(WIFI_STA);
+  WiFi.mode(WIFI_AP);
   WiFi.begin(ssid, password);
   Serial.print("Connecting to WiFi ..");
   while (WiFi.status() != WL_CONNECTED) {
@@ -71,6 +72,16 @@ void initWiFi() {
   Serial.println(WiFi.localIP());
 }
 
+void initWiFiAP() {
+  Serial.println("Configuring access point...");
+  WiFi.softAP(ssid, password);
+  IPAddress myIP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(myIP);
+  server.begin();
+
+  Serial.println("Server started");
+}
 String processor(const String& var){
   getSensorReadings();
   //Serial.println(var);
@@ -139,7 +150,7 @@ if (!!window.EventSource)
 
 void setup() {
   Serial.begin(115200);
-  initWiFi();
+  initWiFiAP();
   COUNT();
   
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
